@@ -1,14 +1,13 @@
 <template>
-  <div class="folder-item">
+  <div
+    class="folder-item"
+    :class="{'selected': isSelected}"
+  >
     <div
       class="header"
-      @click="expanded = !expanded"
+      @click="headerClickHandler"
     >
-      <span class="icon">
-        <img v-show="!expanded" src="../assets/icons/folder.svg" />
-        <img v-show="expanded" src="../assets/icons/folder-open.svg" />
-      </span>
-
+      <Icon class="icon" :name="iconName" />
       <span class="title">
         {{data.name}}
       </span>
@@ -16,7 +15,7 @@
 
     <template v-if="items.length">
       <div
-        v-if="expanded && items.length"
+        v-if="isExpanded && items.length"
         class="list"
       >
         <component
@@ -24,10 +23,12 @@
           :key="item.name"
           :is="renderComponent(item.type)"
           :data="item"
-          :path="nextPath"
+          :path="fullPath"
           :depth="depth + 1"
-          :selectedItems="$attrs.selectedItems"
-          @click="clickItemHandler($event, item)" />
+          :selectedItems="selectedItems"
+          :expandedFolders="expandedFolders"
+          v-on="listeners"
+          @click="itemClickHandler($event, item)" />
       </div>
     </template>
   </div>
@@ -36,38 +37,39 @@
 <script>
 import FileItem from './FileItem.vue';
 import LinkItem from './LinkItem.vue';
+import Icon from './Icon.vue';
 import FolderItem from './FolderItem.vue';
+import TreeItemMixin from '../mixins/treeItemMixin.js';
 
 export default {
   name: 'FolderItem',
-  props: {
-    data: {
-      type: Object,
-      default: () => ({}),
-    },
-    depth: {
-      type: Number,
-      default: 0,
-    },
-    path: {
-      type: String,
-      default: '/',
-    },
+  components: {
+    Icon,
   },
-  data() {
-    return {
-      expanded: false,
-    };
-  },
+  mixins: [TreeItemMixin],
   computed: {
+    listeners() {
+      switch(this.data?.type) {
+        case 'directory':
+          return {
+            expand: (path) => {this.$emit('expand', path)},
+            collapse: (path) => {this.$emit('collapse', path)},
+          }
+        default:
+          return {};
+      }
+    },
     items() {
       return (this.data?.contents || []).sort((a, b) =>
         (a.type === 'directory' && b.type !== 'directory') ? -1 : 0
       );
     },
-    nextPath() {
-      return `${this.path}${this.path !== '/' ? '/' : ''}${this.data?.name}`;
-    }
+    iconName() {
+      return this.isExpanded ? 'folder-open' : 'folder';
+    },
+    isExpanded() {
+      return this.expandedFolders.includes(this.fullPath + '/');
+    },
   },
   methods: {
     renderComponent(type) {
@@ -80,9 +82,12 @@ export default {
           return FolderItem;
       }
     },
-    clickItemHandler(event, item) {
+    headerClickHandler() {
+      !this.isExpanded ? this.$emit('expand', this.fullPath + '/') : this.$emit('collapse', this.fullPath + '/');
+    },
+    itemClickHandler(event, item) {
       if (['file','link'].includes(item?.type)) {
-        this.$emit('click', { event, item, fullPath: `${this.nextPath}/${item?.name}`});
+        this.$emit('click', { event, item, fullPath: `${this.fullPath}/${item?.name}`});
       } else {
         this.$emit('click', event);
       }
@@ -96,11 +101,14 @@ export default {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  user-select: none;
+}
+
+.folder-item.selected > .header {
+  background-color: #cecece;
 }
 
 .icon {
-  display: flex;
-  align-items: center;
   margin-right: 5px;
 }
 

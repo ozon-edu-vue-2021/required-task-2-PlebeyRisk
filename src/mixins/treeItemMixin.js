@@ -14,7 +14,11 @@ export default {
     },
     selectedItems: {
       type: Array,
-      default: () => ({}),
+      default: () => ([]),
+    },
+    expandedFolders: {
+      type: Array,
+      default: () => ([]),
     },
   },
   computed: {
@@ -22,7 +26,7 @@ export default {
       return `${this.path}${this.path !== '/' ? '/' : ''}${this.data?.name}`;
     },
     isSelected() {
-      return this.selectedItems.includes(this.fullPath);
-    }
+      return this.selectedItems.includes(this.fullPath) || this.selectedItems.includes(this.fullPath + '/');
+    },
   },
 }

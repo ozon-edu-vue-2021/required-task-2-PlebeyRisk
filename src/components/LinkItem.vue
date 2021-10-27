@@ -5,10 +5,7 @@
     :href="data.target"
     v-on="$listeners"
   >
-    <span class="icon">
-      <img src="../assets/icons/link.svg" />
-    </span>
-
+    <Icon class="icon" name="link" />
     <span class="title">
       {{data.name}}
     </span>
@@ -16,10 +13,14 @@
 </template>
 
 <script>
+import Icon from './Icon.vue';
 import TreeItemMixin from '../mixins/treeItemMixin.js';
 
 export default {
   name: 'LinkItem',
+  components: {
+    Icon,
+  },
   mixins: [TreeItemMixin],
 }
 </script>
@@ -32,6 +33,7 @@ export default {
   color: #000;
   cursor: pointer;
   margin-right: auto;
+  user-select: none;
 }
 
 .link-item.selected {
@@ -40,7 +42,5 @@ export default {
 
 .icon {
   margin-right: 5px;
-  display: flex;
-  align-items: center;
 }
 </style>
