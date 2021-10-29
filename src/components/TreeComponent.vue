@@ -12,13 +12,16 @@
       :expandedFolders="expandedFolders"
       @collapse="collapseFolderHandler"
       @expand="expandFolderHandler"
-      @click="clickItemHandler" />
+      @click="clickItemHandler"
+      @change:select="changeSelectHandler" />
   </div>
 </template>
 
 <script>
 import FolderItem from './FolderItem.vue';
 import pluralForm from '../utils/pluralForm';
+// import getByPath from '../utils/getByPath';
+
 
 export default {
   name: 'Tree',
@@ -49,11 +52,22 @@ export default {
     },
   },
   methods: {
+    changeSelectHandler(newSelectedPath) {
+      this.selectedItems = [newSelectedPath.length ? newSelectedPath : `/${this.data.name}`];
+    },
     keyDownHandler(event) {
       if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
         if (!this.selectedItems.length) {
           event.preventDefault();
-          this.selectedItems = [`/${this.data.name}/`];
+          this.selectedItems = [`/${this.data.name}`];
+        } else {
+          // const lastSelectedItemPath = this.selectedItems[this.selectedItems.length - 1];
+          // let pathArr = lastSelectedItemPath.split('/');
+          // pathArr = lastSelectedItemPath[lastSelectedItemPath.length - 1] === '/'
+          //   ? pathArr.slice(1, pathArr.length - 2)
+          //   : pathArr.slice(1, -1);
+          // console.log(lastSelectedItemPath);
+          // console.log(getByPath(this.data, pathArr.join('/')));
         }
       } else if (event.key === 'Enter') {
         const folderPath = this.selectedItems.length ? this.selectedItems[this.selectedItems.length - 1] : null;
